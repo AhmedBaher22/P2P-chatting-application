@@ -7,10 +7,12 @@ import hashlib
 from socket import *
 import threading
 import time
+
+import colorama
 import select
 import logging
 from colorama import Fore, Style
-
+colorama.init()
 # Server side of peer
 class PeerServer(threading.Thread):
 
@@ -176,17 +178,23 @@ class PeerServer(threading.Thread):
                             inputs.clear()
                             inputs.append(self.tcpServerSocket)
                             # connected peer ended the chat
-                            if len(messageReceived) == 2:
+                            if len(messageReceived) == 2 :
                                 print("User you're chatting with ended the chat")
                                 print("Press enter to quit the chat: ")
                         # if the message is an empty one, then it means that the
                         # connected user suddenly ended the chat(an error occurred)
+                        elif len(messageReceived) == 0 and self.chattingClientName != None:
+                            self.isChatRequested = 0
+                            inputs.clear()
+                            inputs.append(self.tcpServerSocket)
+
+                            print("User you're chatting with suddenly ended the chat")
+                            print("Press enter to quit the chat: ")
                         elif len(messageReceived) == 0:
                             self.isChatRequested = 0
                             inputs.clear()
                             inputs.append(self.tcpServerSocket)
-                            print("User you're chatting with suddenly ended the chat")
-                            print("Press enter to quit the chat: ")
+
             # handles the exceptions, and logs them
             except OSError as oErr:
                 logging.error("OSError: {0}".format(oErr))
@@ -487,7 +495,16 @@ class peerMain:
                     username = input(f"{Fore.YELLOW}username: ")
                     password = input(f"{Fore.YELLOW}password: ")
                     # asks for the port number for server's tcp socket
-                    peerServerPort = int(input("Enter a port number for peer server: "))
+                    while 1:
+                        try:
+                            peerServerPort = int(input(f"{Fore.YELLOW}Enter a port number for peer server: "))
+
+                            if peerServerPort >= 0 and peerServerPort <= 65535:
+                                break
+                            else:
+                                print(f"{Fore.RED}ERROR, port must be 0-65535.")
+                        except ValueError:
+                            print(f"{Fore.RED}Please enter a valid integer.")
 
 
                     hashed_password = self.hash_password(password)
@@ -539,6 +556,9 @@ class peerMain:
                 # for a username that is wanted to be searched
                 elif choice == "4" and self.isOnline:
                     username = input("Username to be searched: ")
+                    if username == "":
+                        print(f"{Fore.RED}ERROR: empty input!")
+                        continue
                     searchStatus = self.searchUser(username)
                     # if user is found its ip address is shown to user
                     if searchStatus != None and searchStatus != 0:
@@ -631,7 +651,7 @@ class peerMain:
                                     break
                             if flagFound == 1:
                                 self.ExitRoom(group)
-                                print("start chat here")
+                                break
                             else:
                                 print(f"{Fore.RED} invalid group name entered, please choose only one of your group names")
 
@@ -729,11 +749,11 @@ class peerMain:
         logging.info("Received from " + self.registryName + " -> " + " ".join(response))
         if response[0] == "search-success":
             if printFlag:
-                print(username + " is found successfully...")
+                print(Fore.GREEN+username + " is found successfully...")
             return response[1]
         elif response[0] == "search-user-not-online":
             if printFlag:
-                print(username + " is not online...")
+                print(Fore.YELLOW+username + " is not online...")
             return 0
         elif response[0] == "search-user-not-found":
             if printFlag:
@@ -861,7 +881,7 @@ class peerMain:
                 print(Fore.LIGHTGREEN_EX + f"Room Members:")
                 for user in room_members:
                     if len(room_members) < 2:
-                        print(f"no other members yet")
+                        print(f"{Fore.RED}no other members yet")
                         break
                     if i == 1:
                         i+=1
@@ -920,6 +940,8 @@ class peerMain:
                 members = self.listGroupMembersChatting(groupName)
                 print(members)
                 for member in members:
+                    if member == self.loginCredentials[0]:
+                        continue
                     searchStatus = self.searchUser(member, 0)
                     if searchStatus is not None and searchStatus != 0:
                         searchStatus = searchStatus.split(":")
