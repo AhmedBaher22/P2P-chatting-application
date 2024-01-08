@@ -7,10 +7,13 @@ import hashlib
 from socket import *
 import threading
 import time
+
+import colorama
 import select
 import logging
 from colorama import Fore, Style
 
+colorama.init()
 # Server side of peer
 class PeerServer(threading.Thread):
 

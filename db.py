@@ -161,3 +161,6 @@ class DB:
     def get_current_chatting_members(self, chat_room_name):
         members = self.accounts.find({"currentRoomChatting": chat_room_name})
         return [member["username"] for member in members]
+
+    def count_online_users(self):
+        return self.online_peers.count_documents({})

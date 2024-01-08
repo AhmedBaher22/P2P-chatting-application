@@ -339,6 +339,7 @@ while inputs:
     for s in readable:
         # if the message received comes to the tcp socket
         # the connection is accepted and a thread is created for it, and that thread is started
+
         if s is tcpSocket:
             tcpClientSocket, addr = tcpSocket.accept()
             newThread = ClientThread(addr[0], addr[1], tcpClientSocket)
@@ -356,6 +357,7 @@ while inputs:
                     # resets the timeout for that peer since the hello message is received
                     tcpThreads[message[1]].resetTimeout()
                     print("Hello is received from " + message[1])
+                    print("number of connections: " + str(db.count_online_users()))
                     logging.info(
                         "Received from " + clientAddress[0] + ":" + str(clientAddress[1]) + " -> " + " ".join(message))
 
