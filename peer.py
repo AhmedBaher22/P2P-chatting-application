@@ -7,10 +7,12 @@ import hashlib
 from socket import *
 import threading
 import time
+
+import colorama
 import select
 import logging
 from colorama import Fore, Style
-
+colorama.init()
 # Server side of peer
 class PeerServer(threading.Thread):
 
@@ -938,6 +940,8 @@ class peerMain:
                 members = self.listGroupMembersChatting(groupName)
                 print(members)
                 for member in members:
+                    if member == self.loginCredentials[0]:
+                        continue
                     searchStatus = self.searchUser(member, 0)
                     if searchStatus is not None and searchStatus != 0:
                         searchStatus = searchStatus.split(":")
